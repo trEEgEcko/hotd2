@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.flycast.emulator"
+        applicationId = "com.treegecko.hotd2"
         minSdk = 21
         targetSdk = 36
         versionCode = 8
