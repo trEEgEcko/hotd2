@@ -145,18 +145,22 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
 
         // When viewing a resource, pass its URI to the native code for opening
         Intent intent = getIntent();
+        boolean gameFromIntent = false;
         if (Intent.ACTION_VIEW.equals(intent.getAction())) {
             Uri gameUri = intent.getData();
             // Flush the intent to prevent multiple calls
             getIntent().setData(null);
             setIntent(null);
             if (gameUri != null) {
+                gameFromIntent = true;
                 if (storagePermissionGranted)
                     JNIdc.setGameUri(gameUri.toString());
                 else
                     pendingIntentUrl = gameUri.toString();
             }
         }
+        if (!gameFromIntent)
+            autoBoot(homeDir);
         Log.i("flycast", "BaseGLActivity.onCreate done");
     }
 
@@ -472,7 +476,109 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
             case AndroidStorage.EXPORT_HOME_ACTIVITY_REQUEST:
                 storage.onExportHomeResult(data);
                 break;
+            case PICK_GAME_FILES:
+                onGameFilesPicked(resultCode, data);
+                break;
         }
+    }
+
+    // ---- Single-game wrapper: The House of the Dead 2 (NAOMI, romset "hotd2") ----
+    private static final String GAME_ROM = "hotd2.zip";
+    private static final String GAME_BIOS = "hod2bios.zip";
+    private static final int PICK_GAME_FILES = 7001;
+    private String gameHome;
+
+    private File gameRom() {
+        return new File(gameHome, GAME_ROM);
+    }
+
+    private File gameBios() {
+        return new File(new File(gameHome, "data"), GAME_BIOS);
+    }
+
+    private void autoBoot(String homeDir) {
+        gameHome = homeDir;
+        if (gameRom().exists() && gameBios().exists())
+            JNIdc.setGameUri(gameRom().getAbsolutePath());
+        else
+            pickGameFiles();
+    }
+
+    private void pickGameFiles() {
+        android.widget.Toast.makeText(this, "Select " + GAME_ROM + " and " + GAME_BIOS,
+                android.widget.Toast.LENGTH_LONG).show();
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(i, PICK_GAME_FILES);
+    }
+
+    private String displayName(Uri uri) {
+        try (android.database.Cursor c = getContentResolver().query(uri, null, null, null, null)) {
+            if (c != null && c.moveToFirst()) {
+                int idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                if (idx >= 0)
+                    return c.getString(idx);
+            }
+        } catch (Exception e) {
+            Log.w("flycast", "displayName failed", e);
+        }
+        return null;
+    }
+
+    private void copyUri(Uri uri, File dest) throws java.io.IOException {
+        File dir = dest.getParentFile();
+        if (dir != null && !dir.exists())
+            dir.mkdirs();
+        File tmp = new File(dest.getPath() + ".tmp");
+        try (java.io.InputStream in = getContentResolver().openInputStream(uri);
+             java.io.OutputStream out = new java.io.FileOutputStream(tmp)) {
+            if (in == null)
+                throw new java.io.IOException("Cannot open " + uri);
+            byte[] buf = new byte[1 << 16];
+            int n;
+            while ((n = in.read(buf)) > 0)
+                out.write(buf, 0, n);
+        }
+        if (dest.exists())
+            dest.delete();
+        if (!tmp.renameTo(dest))
+            throw new java.io.IOException("Cannot write " + dest);
+    }
+
+    private void onGameFilesPicked(int resultCode, Intent data) {
+        final List<Uri> uris = new ArrayList<>();
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (data.getClipData() != null) {
+                for (int i = 0; i < data.getClipData().getItemCount(); i++)
+                    uris.add(data.getClipData().getItemAt(i).getUri());
+            } else if (data.getData() != null) {
+                uris.add(data.getData());
+            }
+        }
+        new Thread(() -> {
+            for (Uri uri : uris) {
+                String name = displayName(uri);
+                try {
+                    if (GAME_ROM.equalsIgnoreCase(name))
+                        copyUri(uri, gameRom());
+                    else if (GAME_BIOS.equalsIgnoreCase(name))
+                        copyUri(uri, gameBios());
+                } catch (java.io.IOException e) {
+                    Log.e("flycast", "Copy failed for " + name, e);
+                }
+            }
+            handler.post(() -> {
+                if (gameRom().exists() && gameBios().exists()) {
+                    JNIdc.setGameUri(gameRom().getAbsolutePath());
+                } else {
+                    android.widget.Toast.makeText(this, "Missing " + GAME_ROM + " or " + GAME_BIOS,
+                            android.widget.Toast.LENGTH_LONG).show();
+                    pickGameFiles();
+                }
+            });
+        }).start();
     }
 
     private static native void register(BaseGLActivity activity);
