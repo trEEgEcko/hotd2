@@ -911,6 +911,16 @@ void startGame()
 		if (settings.input.lightgunGame || settings.input.mouseGame)
 			enableTouchMouse = true;
 	}
+	// Lightgun games using B as reload: expose reload as the independent Btn5 control,
+	// since the A/B/X/Y cluster moves as a single block in the layout editor.
+	if (buttonMap[Btn5] == DC_BTN_RELOAD)
+		buttonMap[Btn5] = DC_BTN_Z;
+	if (buttonMap[B] == DC_BTN_RELOAD && !Controls[B].disabled)
+	{
+		buttonMap[Btn5] = DC_BTN_RELOAD;
+		Controls[Btn5].disabled = false;
+		disableControl(B);
+	}
 	std::shared_ptr<TouchMouse> touchMouse = GamepadDevice::GetGamepad<TouchMouse>();
 	if (touchMouse != nullptr)
 	{

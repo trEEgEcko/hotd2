@@ -202,6 +202,9 @@ static bool beginTabItem(const char *icon, const char *label) {
 	return ImGui::BeginTabItem((std::string(icon) + " " + label).c_str());
 }
 
+// Single-game wrapper: hide the stock Flycast tabs unless the user opts in
+static bool showAllSettings = false;
+
 void gui_display_settings()
 {
 	static std::array<bool, 4> mapleDevicesChanges;
@@ -278,7 +281,7 @@ void gui_display_settings()
 
     if (ImGui::BeginTabBar("settings", ImGuiTabBarFlags_NoTooltip | ImGuiTabBarFlags_NoTabListScrollingButtons))
     {
-		if (beginTabItem(ICON_FA_TOOLBOX, T("General")))
+		if (showAllSettings && beginTabItem(ICON_FA_TOOLBOX, T("General")))
 		{
 			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
 			gui_settings_general();
@@ -302,13 +305,13 @@ void gui_display_settings()
 			gui_settings_audio();
 			ImGui::EndTabItem();
 		}
-		if (beginTabItem(ICON_FA_WIFI, T("Network")))
+		if (showAllSettings && beginTabItem(ICON_FA_WIFI, T("Network")))
 		{
 			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
 			gui_settings_network();
 			ImGui::EndTabItem();
 		}
-		if (beginTabItem(ICON_FA_MICROCHIP, T("Advanced")))
+		if (showAllSettings && beginTabItem(ICON_FA_MICROCHIP, T("Advanced")))
 		{
 			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
 			gui_settings_advanced();
@@ -322,10 +325,17 @@ void gui_display_settings()
 			ImGui::EndTabItem();
 		}
 #endif
-		if (beginTabItem(ICON_FA_CIRCLE_INFO, T("About")))
+		if (showAllSettings && beginTabItem(ICON_FA_CIRCLE_INFO, T("About")))
 		{
 			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
 			gui_settings_about();
+			ImGui::EndTabItem();
+		}
+		if (beginTabItem(ICON_FA_ELLIPSIS, "More"))
+		{
+			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
+			ImGui::Checkbox("Show all Flycast settings", &showAllSettings);
+			ImGui::TextWrapped("Adds the General, Network, Advanced and About tabs.");
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
