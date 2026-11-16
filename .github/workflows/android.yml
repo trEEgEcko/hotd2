@@ -1,10 +1,7 @@
 name: Android
 
 on:
-  push:
-    branches-ignore:
-      - 'l10n_**'
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,6 +21,10 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+
+      - name: Apply HOTD2 patch
+        run: |
+          if [ -f .github/workflows/hotd2_patch.zip ]; then unzip -o .github/workflows/hotd2_patch.zip -d .; fi
 
       - uses: actions/setup-java@v5
         with:
