@@ -55,6 +55,8 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
     private boolean audioPermissionRequested = false;
     private boolean storagePermissionGranted = false;
     private boolean paused = true;
+    private boolean userPaused = false;
+    public HudOverlay hud;
     private boolean resumedCalled = false;
     private String pendingIntentUrl;
     private boolean hasKeyboard = false;
@@ -216,6 +218,8 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
         register(null);
         if (audioBackend != null)
             audioBackend.release();
+        if (hud != null)
+            hud.destroy();
         Emulator.setCurrentActivity(null);
         stopEmulator();
     }
@@ -254,8 +258,17 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
     protected abstract void doResume();
     protected abstract boolean isSurfaceReady();
 
+    public boolean toggleUserPause()
+    {
+        userPaused = !userPaused;
+        handleStateChange(userPaused);
+        return userPaused;
+    }
+
     public void handleStateChange(boolean paused)
     {
+        if (!paused && userPaused)
+            return;
         if (paused == this.paused)
             return;
         if (!paused && (!resumedCalled || !isSurfaceReady()))
@@ -270,7 +283,10 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
     }
 
     private boolean showMenu() {
-        JNIdc.guiOpenSettings();
+        if (hud != null && !JNIdc.guiIsOpen())
+            hud.showQuickOptions();
+        else
+            JNIdc.guiOpenSettings();
         return true;
     }
 

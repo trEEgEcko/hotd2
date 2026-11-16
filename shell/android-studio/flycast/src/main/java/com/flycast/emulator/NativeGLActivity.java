@@ -39,6 +39,8 @@ public final class NativeGLActivity extends BaseGLActivity {
         mLayout.addView(mView);
 
         setContentView(mLayout);
+        hud = new HudOverlay(this);
+        hud.attach();
         Log.i("flycast", "NativeGLActivity.onCreate done");
     }
 
