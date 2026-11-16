@@ -67,8 +67,8 @@ Option<bool> VmuSound("VmuSound", false, "audio");
 
 RendererOption RendererType;
 Option<bool> UseMipmaps("rend.UseMipmaps", true);
-Option<bool> Widescreen("rend.WideScreen");
-Option<bool> SuperWidescreen("rend.SuperWideScreen");
+Option<bool> Widescreen("rend.WideScreen", true);
+Option<bool> SuperWidescreen("rend.SuperWideScreen", true);
 Option<bool> ShowFPS("rend.ShowFPS");
 Option<bool> RenderToTextureBuffer("rend.RenderToTextureBuffer");
 Option<bool> TranslucentPolygonDepthMask("rend.TranslucentPolygonDepthMask");
