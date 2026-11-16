@@ -296,6 +296,26 @@ extern "C" JNIEXPORT void JNICALL Java_com_flycast_emulator_emu_JNIdc_resume(JNI
     }
 }
 
+// Aspect mode: 0 = 4:3, 1 = widescreen, 2 = super widescreen
+extern "C" JNIEXPORT void JNICALL Java_com_flycast_emulator_emu_JNIdc_setAspectMode(JNIEnv *env, jobject obj, jint mode)
+{
+	config::Widescreen = mode >= 1;
+	config::SuperWidescreen = mode >= 2;
+	SaveSettings();
+}
+
+extern "C" JNIEXPORT jint JNICALL Java_com_flycast_emulator_emu_JNIdc_getAspectMode(JNIEnv *env, jobject obj)
+{
+	if (!config::Widescreen)
+		return 0;
+	return config::SuperWidescreen ? 2 : 1;
+}
+
+extern "C" JNIEXPORT void JNICALL Java_com_flycast_emulator_emu_JNIdc_restartGame(JNIEnv *env, jobject obj)
+{
+	emu.requestReset();
+}
+
 void input_term();
 
 extern "C" JNIEXPORT void JNICALL Java_com_flycast_emulator_emu_JNIdc_stop(JNIEnv *env,jobject obj)

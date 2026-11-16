@@ -168,6 +168,25 @@ extern "C" JNIEXPORT void JNICALL Java_com_flycast_emulator_periph_InputDeviceMa
 		virtualGamepad->buttonInput(static_cast<vgamepad::ControlId>(controlId), pressed);
 }
 
+// HUD keys: 0 coin, 1 start, 2 reload, 3 test, 4 service
+extern "C" JNIEXPORT void JNICALL Java_com_flycast_emulator_periph_InputDeviceManager_virtualKeyInput(JNIEnv *env, jobject obj,
+		jint hudKey, jboolean pressed)
+{
+	if (!virtualGamepad)
+		return;
+	u32 key = 0;
+	switch (hudKey)
+	{
+	case 0: key = DC_BTN_D; break;
+	case 1: key = DC_BTN_START; break;
+	case 2: key = DC_BTN_RELOAD; break;
+	case 3: key = DC_DPAD2_DOWN; break;
+	case 4: key = DC_DPAD2_UP; break;
+	default: return;
+	}
+	virtualGamepad->dcKeyInput(key, pressed);
+}
+
 extern "C" JNIEXPORT jboolean JNICALL Java_com_flycast_emulator_periph_InputDeviceManager_joystickButtonEvent(JNIEnv *env, jobject obj,
 		jint id, jint key, jboolean pressed)
 {
