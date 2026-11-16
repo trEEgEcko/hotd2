@@ -123,6 +123,21 @@ public:
 		}
 	}
 
+	// Direct DC key injection (used by the Java HUD overlay)
+	void dcKeyInput(u32 kcode, bool pressed)
+	{
+		if (kcode == 0)
+			return;
+		if (kcode <= DC_BTN_BITMAPPED_LAST)
+		{
+			if (pressed)
+				buttonState |= kcode;
+			else
+				buttonState &= ~kcode;
+		}
+		gamepad_btn_input(kcode, pressed);
+	}
+
 private:
 	u32 buttonState = 0;
 	bool previousFastForward = false;
