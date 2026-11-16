@@ -244,6 +244,7 @@ public final class InputDeviceManager implements InputManager.InputDeviceListene
     public native void virtualReleaseAll();
     public native void virtualJoystick(float x, float y);
     public native void virtualButtonInput(int key, boolean pressed);
+    public native void virtualKeyInput(int hudKey, boolean pressed);
     private native boolean joystickButtonEvent(int id, int button, boolean pressed);
     private native boolean joystickAxisEvent(int id, int button, int value);
     public native void mouseEvent(int xpos, int ypos, int buttons);
