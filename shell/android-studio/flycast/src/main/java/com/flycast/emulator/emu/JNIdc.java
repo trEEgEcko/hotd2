@@ -23,6 +23,9 @@ public final class JNIdc
 
 	public static native void screenCharacteristics(float screenDpi, float refreshRate);
 	public static native void guiOpenSettings();
+	public static native void setAspectMode(int mode);
+	public static native int getAspectMode();
+	public static native void restartGame();
 	public static native boolean guiIsOpen();
 	public static native boolean guiIsContentBrowser();
 	public static native void guiSetInsets(int left, int right, int top, int bottom);
